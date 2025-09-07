@@ -1,6 +1,6 @@
 """Integrations module for external platforms"""
 
-from .dataiku import DataikuIntegration
 from .databricks import DatabricksIntegration
+from .dataiku import DataikuIntegration
 
 __all__ = ["DataikuIntegration", "DatabricksIntegration"]

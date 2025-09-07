@@ -9,14 +9,14 @@ __author__ = "Dataiku Cloud Optimizer Team"
 __email__ = "support@dataiku.com"
 
 from .core import CloudOptimizerAgent
+from .integrations import DatabricksIntegration, DataikuIntegration
 from .providers import AWSProvider, AzureProvider, GCPProvider
 from .strategies import CostOptimizationStrategy
-from .integrations import DataikuIntegration, DatabricksIntegration
 
 __all__ = [
     "CloudOptimizerAgent",
     "AWSProvider",
-    "AzureProvider", 
+    "AzureProvider",
     "GCPProvider",
     "CostOptimizationStrategy",
     "DataikuIntegration",

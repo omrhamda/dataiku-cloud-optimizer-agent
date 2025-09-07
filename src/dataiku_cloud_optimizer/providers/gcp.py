@@ -2,24 +2,23 @@
 Google Cloud Platform Provider implementation
 """
 
-from typing import Dict, List, Any, Optional
 import logging
+from typing import Any, Dict, List, Optional
 
 from .base import CloudProvider
-
 
 logger = logging.getLogger(__name__)
 
 
 class GCPProvider(CloudProvider):
     """Google Cloud Platform Provider for cost optimization"""
-    
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         super().__init__(config)
         self.project_id = self.config.get("project_id")
         self.credentials_path = self.config.get("credentials_path")
         self._authenticated = False
-        
+
     def authenticate(self) -> bool:
         """Authenticate with GCP using service account or application default credentials"""
         try:
@@ -30,15 +29,17 @@ class GCPProvider(CloudProvider):
         except Exception as e:
             logger.error(f"Failed to authenticate with GCP: {e}")
             return False
-    
-    def get_cost_data(self, start_date: Optional[str] = None, end_date: Optional[str] = None, **kwargs) -> Dict[str, Any]:
+
+    def get_cost_data(
+        self, start_date: Optional[str] = None, end_date: Optional[str] = None, **kwargs
+    ) -> Dict[str, Any]:
         """Get GCP cost data using Cloud Billing API"""
         if not self._authenticated:
             self.authenticate()
-            
+
         if not start_date or not end_date:
             start_date, end_date = self.get_default_date_range()
-            
+
         # Stub implementation - in reality this would use GCP Cloud Billing API
         return {
             "provider": "gcp",
@@ -49,20 +50,20 @@ class GCPProvider(CloudProvider):
                 "Compute Engine": 520.25,
                 "Cloud SQL": 180.75,
                 "Cloud Storage": 95.50,
-                "BigQuery": 79.00
+                "BigQuery": 79.00,
             },
             "regions": {
                 "us-central1": 450.00,
                 "us-east1": 300.25,
-                "europe-west1": 125.25
-            }
+                "europe-west1": 125.25,
+            },
         }
-    
+
     def get_resource_inventory(self) -> List[Dict[str, Any]]:
         """Get GCP resource inventory"""
         if not self._authenticated:
             self.authenticate()
-            
+
         # Stub implementation
         return [
             {
@@ -72,7 +73,7 @@ class GCPProvider(CloudProvider):
                 "status": "RUNNING",
                 "cost_per_hour": 0.095,
                 "cpu_utilization": 28.7,
-                "labels": {"environment": "production", "team": "analytics"}
+                "labels": {"environment": "production", "team": "analytics"},
             },
             {
                 "resource_id": "projects/my-project/instances/db-instance-1",
@@ -81,15 +82,15 @@ class GCPProvider(CloudProvider):
                 "status": "RUNNABLE",
                 "cost_per_hour": 0.055,
                 "cpu_utilization": 40.3,
-                "labels": {"environment": "production", "service": "api"}
-            }
+                "labels": {"environment": "production", "service": "api"},
+            },
         ]
-    
+
     def get_recommendations(self) -> List[Dict[str, Any]]:
         """Get GCP-specific optimization recommendations"""
         if not self._authenticated:
             self.authenticate()
-            
+
         # Stub implementation using GCP Recommender style recommendations
         return [
             {
@@ -99,7 +100,7 @@ class GCPProvider(CloudProvider):
                 "recommended_type": "n1-standard-1",
                 "estimated_savings": 42.75,
                 "confidence": 0.88,
-                "reason": "Sustained low CPU utilization and memory usage"
+                "reason": "Sustained low CPU utilization and memory usage",
             },
             {
                 "type": "committed_use_discount",
@@ -107,15 +108,15 @@ class GCPProvider(CloudProvider):
                 "instances_count": 8,
                 "estimated_savings": 180.50,
                 "confidence": 0.95,
-                "reason": "Consistent usage pattern over 3 months"
-            }
+                "reason": "Consistent usage pattern over 3 months",
+            },
         ]
-    
+
     def get_rightsizing_opportunities(self) -> List[Dict[str, Any]]:
         """Get Compute Engine rightsizing opportunities"""
         if not self._authenticated:
             self.authenticate()
-            
+
         return [
             {
                 "instance_name": "instance-1",
@@ -126,7 +127,7 @@ class GCPProvider(CloudProvider):
                 "memory_utilization": 32.4,
                 "network_utilization": 12.8,
                 "monthly_savings": 42.75,
-                "confidence_score": 0.88
+                "confidence_score": 0.88,
             },
             {
                 "instance_name": "analytics-worker",
@@ -137,15 +138,15 @@ class GCPProvider(CloudProvider):
                 "memory_utilization": 35.1,
                 "network_utilization": 22.5,
                 "monthly_savings": 85.20,
-                "confidence_score": 0.82
-            }
+                "confidence_score": 0.82,
+            },
         ]
-    
+
     def get_unused_resources(self) -> List[Dict[str, Any]]:
         """Get unused GCP resources"""
         if not self._authenticated:
             self.authenticate()
-            
+
         return [
             {
                 "resource_id": "projects/my-project/zones/us-central1-a/disks/disk-unused-1",
@@ -155,7 +156,7 @@ class GCPProvider(CloudProvider):
                 "status": "unattached",
                 "monthly_cost": 34.00,
                 "last_attached": None,
-                "recommendation": "Delete unattached persistent disk"
+                "recommendation": "Delete unattached persistent disk",
             },
             {
                 "resource_id": "projects/my-project/global/addresses/address-unused-1",
@@ -163,7 +164,7 @@ class GCPProvider(CloudProvider):
                 "region": "global",
                 "status": "reserved",
                 "monthly_cost": 7.30,
-                "recommendation": "Release unused static IP address"
+                "recommendation": "Release unused static IP address",
             },
             {
                 "resource_id": "projects/my-project/global/images/old-image-20230101",
@@ -171,6 +172,6 @@ class GCPProvider(CloudProvider):
                 "size_gb": 10,
                 "age_days": 150,
                 "monthly_cost": 2.50,
-                "recommendation": "Delete old custom image"
-            }
+                "recommendation": "Delete old custom image",
+            },
         ]

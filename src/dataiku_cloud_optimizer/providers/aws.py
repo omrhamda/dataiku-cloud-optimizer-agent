@@ -2,24 +2,23 @@
 AWS Cloud Provider implementation
 """
 
-from typing import Dict, List, Any, Optional
 import logging
+from typing import Any, Dict, List, Optional
 
 from .base import CloudProvider
-
 
 logger = logging.getLogger(__name__)
 
 
 class AWSProvider(CloudProvider):
     """AWS Cloud Provider for cost optimization"""
-    
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         super().__init__(config)
         self.region = self.config.get("region", "us-east-1")
         self.profile = self.config.get("profile", "default")
         self._authenticated = False
-        
+
     def authenticate(self) -> bool:
         """Authenticate with AWS using boto3"""
         try:
@@ -31,37 +30,32 @@ class AWSProvider(CloudProvider):
         except Exception as e:
             logger.error(f"Failed to authenticate with AWS: {e}")
             return False
-    
-    def get_cost_data(self, start_date: Optional[str] = None, end_date: Optional[str] = None, **kwargs) -> Dict[str, Any]:
+
+    def get_cost_data(
+        self, start_date: Optional[str] = None, end_date: Optional[str] = None, **kwargs
+    ) -> Dict[str, Any]:
         """Get AWS cost data using Cost Explorer API"""
         if not self._authenticated:
             self.authenticate()
-            
+
         if not start_date or not end_date:
             start_date, end_date = self.get_default_date_range()
-            
+
         # Stub implementation - in reality this would use boto3 cost explorer
         return {
             "provider": "aws",
             "total_cost": 1250.75,
             "period": f"{start_date} to {end_date}",
             "resource_count": 45,
-            "services": {
-                "EC2": 850.50,
-                "RDS": 275.25,
-                "S3": 125.00
-            },
-            "regions": {
-                "us-east-1": 900.00,
-                "us-west-2": 350.75
-            }
+            "services": {"EC2": 850.50, "RDS": 275.25, "S3": 125.00},
+            "regions": {"us-east-1": 900.00, "us-west-2": 350.75},
         }
-    
+
     def get_resource_inventory(self) -> List[Dict[str, Any]]:
         """Get AWS resource inventory"""
         if not self._authenticated:
             self.authenticate()
-            
+
         # Stub implementation
         return [
             {
@@ -71,7 +65,7 @@ class AWSProvider(CloudProvider):
                 "state": "running",
                 "cost_per_hour": 0.0832,
                 "utilization": 25.5,
-                "tags": {"Environment": "production", "Team": "data-science"}
+                "tags": {"Environment": "production", "Team": "data-science"},
             },
             {
                 "resource_id": "db-instance-1",
@@ -80,15 +74,15 @@ class AWSProvider(CloudProvider):
                 "state": "available",
                 "cost_per_hour": 0.068,
                 "utilization": 45.2,
-                "tags": {"Environment": "production", "Application": "analytics"}
-            }
+                "tags": {"Environment": "production", "Application": "analytics"},
+            },
         ]
-    
+
     def get_recommendations(self) -> List[Dict[str, Any]]:
         """Get AWS-specific optimization recommendations"""
         if not self._authenticated:
             self.authenticate()
-            
+
         # Stub implementation using AWS Trusted Advisor style recommendations
         return [
             {
@@ -98,7 +92,7 @@ class AWSProvider(CloudProvider):
                 "recommended_type": "t3.medium",
                 "estimated_savings": 45.50,
                 "confidence": 0.85,
-                "reason": "Low CPU utilization detected over 30 days"
+                "reason": "Low CPU utilization detected over 30 days",
             },
             {
                 "type": "unused_resource",
@@ -106,15 +100,15 @@ class AWSProvider(CloudProvider):
                 "resource_type": "EBS Volume",
                 "estimated_savings": 25.00,
                 "confidence": 0.95,
-                "reason": "Unattached EBS volume"
-            }
+                "reason": "Unattached EBS volume",
+            },
         ]
-    
+
     def get_rightsizing_opportunities(self) -> List[Dict[str, Any]]:
         """Get EC2 rightsizing opportunities"""
         if not self._authenticated:
             self.authenticate()
-            
+
         return [
             {
                 "instance_id": "i-1234567890abcdef0",
@@ -124,15 +118,15 @@ class AWSProvider(CloudProvider):
                 "memory_utilization": 30.2,
                 "network_utilization": 15.1,
                 "monthly_savings": 45.50,
-                "confidence_score": 0.85
+                "confidence_score": 0.85,
             }
         ]
-    
+
     def get_unused_resources(self) -> List[Dict[str, Any]]:
         """Get unused AWS resources"""
         if not self._authenticated:
             self.authenticate()
-            
+
         return [
             {
                 "resource_id": "vol-0987654321fedcba0",
@@ -141,7 +135,7 @@ class AWSProvider(CloudProvider):
                 "status": "available",
                 "monthly_cost": 25.00,
                 "last_attached": None,
-                "recommendation": "Delete unused volume"
+                "recommendation": "Delete unused volume",
             },
             {
                 "resource_id": "ami-0123456789abcdef0",
@@ -149,6 +143,6 @@ class AWSProvider(CloudProvider):
                 "size_gb": 8,
                 "age_days": 180,
                 "monthly_cost": 5.00,
-                "recommendation": "Consider deregistering old AMI"
-            }
+                "recommendation": "Consider deregistering old AMI",
+            },
         ]
