@@ -1,0 +1,21 @@
+integrations:
+  databricks:
+    token: your-token
+    workspace_url: https://your-workspace.cloud.databricks.com
+  dataiku:
+    api_key: your-api-key
+    url: https://your-dataiku-instance.com
+optimization:
+  strategies:
+  - cost_optimization
+  thresholds:
+    min_confidence_score: 0.7
+    min_savings_percent: 10.0
+providers:
+  aws:
+    profile: default
+    region: us-east-1
+  azure:
+    subscription_id: your-subscription-id
+  gcp:
+    project_id: your-project-id

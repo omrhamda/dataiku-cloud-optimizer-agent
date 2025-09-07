@@ -1,0 +1,96 @@
+# Development Configuration for Dataiku Cloud Optimizer Agent
+
+providers:
+  aws:
+    region: us-west-2
+    profile: default
+    
+  azure:
+    subscription_id: "dev-subscription-id"
+    tenant_id: "dev-tenant-id"
+    
+  gcp:
+    project_id: "dev-project"
+
+integrations:
+  dataiku:
+    url: "https://dev-dataiku.company.com"
+    api_key: "dev-api-key"
+    project_key: "DEV_ANALYTICS"
+    
+  databricks:
+    workspace_url: "https://dev-workspace.cloud.databricks.com"
+    token: "dev-token"
+
+optimization:
+  strategies:
+    - cost_optimization
+    
+  thresholds:
+    # Lower thresholds for development testing
+    min_savings_percent: 5.0
+    min_confidence_score: 0.6
+    min_monthly_cost: 10.0
+    
+  schedule:
+    analysis_frequency: "manual"  # Run manually during development
+    report_frequency: "manual"
+
+reporting:
+  enabled: true
+  format: "json"
+  output_location: "./reports/"
+  
+  notifications:
+    enabled: false  # Disable notifications in dev
+
+logging:
+  level: "DEBUG"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  
+  file:
+    enabled: true
+    path: "./logs/agent.log"
+    max_size_mb: 10
+    backup_count: 2
+    
+  structured:
+    enabled: true
+    format: "json"
+    
+  external:
+    cloudwatch:
+      enabled: false
+    datadog:
+      enabled: false
+    splunk:
+      enabled: false
+
+security:
+  encryption:
+    enabled: false  # Disable encryption for easier debugging
+    
+  network:
+    allowed_ip_ranges:
+      - "0.0.0.0/0"  # Allow all IPs in development
+      
+  api:
+    rate_limiting:
+      enabled: false  # Disable rate limiting for testing
+    authentication:
+      method: "api_key"
+
+performance:
+  concurrency:
+    max_workers: 2  # Reduced for development
+    provider_parallel: false
+    
+  cache:
+    enabled: true
+    ttl_seconds: 300  # 5 minutes for faster iteration
+    backend: "local"  # Use local cache for simplicity
+    
+  limits:
+    max_memory_mb: 512
+    max_cpu_percent: 50
+    timeout_seconds: 300  # 5 minutes

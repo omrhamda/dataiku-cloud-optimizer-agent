@@ -1,0 +1,176 @@
+# Production Configuration for Dataiku Cloud Optimizer Agent
+
+providers:
+  aws:
+    region: us-east-1
+    profile: production
+    # Optional: Role ARN for cross-account access
+    # role_arn: arn:aws:iam::123456789012:role/DataikuOptimizerRole
+    
+  azure:
+    subscription_id: "your-production-subscription-id"
+    tenant_id: "your-tenant-id"
+    # Use environment variables or Azure CLI for authentication
+    # AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, AZURE_TENANT_ID
+    
+  gcp:
+    project_id: "your-production-project"
+    # Use service account key file or application default credentials
+    credentials_path: "/etc/dataiku-optimizer/gcp-credentials.json"
+
+integrations:
+  dataiku:
+    url: "https://dataiku.company.com"
+    api_key: "${DATAIKU_API_KEY}"  # Use environment variable
+    project_key: "PRODUCTION_ANALYTICS"
+    # Optional: Custom timeout settings
+    timeout_seconds: 300
+    
+  databricks:
+    workspace_url: "https://company.cloud.databricks.com"
+    token: "${DATABRICKS_TOKEN}"  # Use environment variable
+    # Optional: Default cluster for jobs
+    default_cluster_id: "0801-123456-abc123"
+
+optimization:
+  strategies:
+    - cost_optimization
+    # - performance_optimization  # Future strategy
+    # - sustainability_optimization  # Future strategy
+    
+  thresholds:
+    # Only show recommendations with at least 15% savings
+    min_savings_percent: 15.0
+    # Only show recommendations with at least 80% confidence
+    min_confidence_score: 0.8
+    # Minimum cost threshold to consider for optimization
+    min_monthly_cost: 100.0
+    
+  schedule:
+    analysis_frequency: "daily"      # daily, weekly, monthly
+    report_frequency: "weekly"       # daily, weekly, monthly
+    # Cron expression for custom schedules
+    # analysis_cron: "0 6 * * *"    # Daily at 6 AM
+    
+  exclusions:
+    # Resources to exclude from optimization
+    resource_tags:
+      - key: "Environment"
+        value: "critical"
+      - key: "DoNotOptimize"
+        value: "true"
+    # Specific resource IDs to exclude
+    resource_ids:
+      - "i-1234567890abcdef0"  # Critical production instance
+      - "db-prod-master"       # Production database
+
+reporting:
+  enabled: true
+  format: "json"  # json, yaml, csv
+  output_location: "s3://company-optimizer-reports/production/"
+  
+  # Email notifications (requires SMTP configuration)
+  notifications:
+    enabled: true
+    recipients:
+      - "devops@company.com"
+      - "finops@company.com"
+    smtp:
+      server: "smtp.company.com"
+      port: 587
+      use_tls: true
+      username: "${SMTP_USERNAME}"
+      password: "${SMTP_PASSWORD}"
+
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  
+  # File logging
+  file:
+    enabled: true
+    path: "/var/log/dataiku-optimizer/agent.log"
+    max_size_mb: 100
+    backup_count: 5
+    
+  # Structured logging for external systems
+  structured:
+    enabled: true
+    format: "json"
+    
+  # External logging systems
+  external:
+    # CloudWatch Logs
+    cloudwatch:
+      enabled: true
+      log_group: "/aws/dataiku-optimizer/production"
+      log_stream: "agent-logs"
+      
+    # Datadog
+    datadog:
+      enabled: false
+      api_key: "${DATADOG_API_KEY}"
+      
+    # Splunk
+    splunk:
+      enabled: false
+      url: "https://splunk.company.com:8088"
+      token: "${SPLUNK_TOKEN}"
+
+security:
+  # Encryption at rest
+  encryption:
+    enabled: true
+    key_management: "aws-kms"  # aws-kms, azure-keyvault, gcp-kms
+    key_id: "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012"
+    
+  # Network security
+  network:
+    # Allow connections only from specific IP ranges
+    allowed_ip_ranges:
+      - "10.0.0.0/8"     # Internal network
+      - "192.168.1.0/24" # VPN range
+      
+  # API security
+  api:
+    rate_limiting:
+      enabled: true
+      requests_per_minute: 60
+    
+    authentication:
+      method: "api_key"  # api_key, oauth2, jwt
+      
+performance:
+  # Parallel processing settings
+  concurrency:
+    max_workers: 10
+    provider_parallel: true
+    
+  # Caching settings
+  cache:
+    enabled: true
+    ttl_seconds: 3600  # 1 hour
+    backend: "redis"   # redis, memcached, local
+    redis_url: "redis://localhost:6379/0"
+    
+  # Resource limits
+  limits:
+    max_memory_mb: 2048
+    max_cpu_percent: 80
+    timeout_seconds: 1800  # 30 minutes
+
+# Environment-specific overrides
+environments:
+  production:
+    logging:
+      level: "WARNING"
+    optimization:
+      thresholds:
+        min_confidence_score: 0.9  # Higher confidence for production
+        
+  staging:
+    logging:
+      level: "DEBUG"
+    optimization:
+      thresholds:
+        min_savings_percent: 5.0   # Lower threshold for testing
