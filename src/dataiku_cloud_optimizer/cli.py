@@ -3,6 +3,7 @@ Command Line Interface for Dataiku Cloud Optimizer Agent
 """
 
 import json
+import os
 from pathlib import Path
 
 import click
@@ -12,6 +13,8 @@ from .integrations import DatabricksIntegration, DataikuIntegration
 from .providers import AWSProvider, AzureProvider, GCPProvider
 from .strategies import CostOptimizationStrategy
 from .utils.config import load_config
+from .utils.llm import LLMEngine
+from .utils.notify import SlackNotifier, EmailNotifier
 
 
 @click.group()
@@ -36,17 +39,45 @@ def cli(ctx, config):
     else:
         ctx.obj["config"] = {}
 
-    # Register default providers
-    agent.register_provider("aws", AWSProvider())
-    agent.register_provider("azure", AzureProvider())
-    agent.register_provider("gcp", GCPProvider())
+    # Register providers (use config if available)
+    providers_cfg = ctx.obj["config"].get("providers", {})
+    agent.register_provider("aws", AWSProvider(providers_cfg.get("aws")))
+    agent.register_provider("azure", AzureProvider(providers_cfg.get("azure")))
+    agent.register_provider("gcp", GCPProvider(providers_cfg.get("gcp")))
 
     # Register default strategy
     agent.register_strategy("cost_optimization", CostOptimizationStrategy())
 
-    # Register integrations
-    agent.register_integration("dataiku", DataikuIntegration())
-    agent.register_integration("databricks", DatabricksIntegration())
+    # Register integrations (pass config)
+    integrations_cfg = ctx.obj["config"].get("integrations", {})
+    agent.register_integration("dataiku", DataikuIntegration(integrations_cfg.get("dataiku")))
+    agent.register_integration("databricks", DatabricksIntegration(integrations_cfg.get("databricks")))
+
+    # Wire optional LLM and notifiers
+    llm_cfg = ctx.obj["config"].get("llm", {})
+    if llm_cfg.get("provider") == "openai":
+        api_key = llm_cfg.get("api_key") or os.getenv("OPENAI_API_KEY")
+        model = llm_cfg.get("model", "gpt-4o-mini")
+        if api_key:
+            agent.register_llm(LLMEngine(api_key=api_key, model=model))
+
+    notify_cfg = ctx.obj["config"].get("notifications", {})
+    slack_cfg = notify_cfg.get("slack", {})
+    if slack_cfg.get("enabled"):
+        slack = SlackNotifier(token=slack_cfg.get("token"), channel=slack_cfg.get("channel"))
+        agent.register_notifier("slack", slack)
+    email_cfg = notify_cfg.get("email", {})
+    if email_cfg.get("enabled"):
+        email = EmailNotifier(
+            smtp_host=email_cfg.get("smtp_host", ""),
+            smtp_port=int(email_cfg.get("smtp_port", 587)),
+            username=email_cfg.get("username", ""),
+            password=email_cfg.get("password", ""),
+            from_addr=email_cfg.get("from", ""),
+            to_addr=email_cfg.get("to", ""),
+            use_tls=bool(email_cfg.get("use_tls", True)),
+        )
+        agent.register_notifier("email", email)
 
     ctx.obj["agent"] = agent
 
@@ -213,6 +244,21 @@ def init(output):
             "strategies": ["cost_optimization"],
             "thresholds": {"min_savings_percent": 10.0, "min_confidence_score": 0.7},
         },
+        "llm": {"provider": "openai", "model": "gpt-4o-mini", "api_key": "${OPENAI_API_KEY}"},
+        "notifications": {
+            "slack": {"enabled": False, "token": "${SLACK_BOT_TOKEN}", "channel": "#finops"},
+            "email": {
+                "enabled": False,
+                "smtp_host": "smtp.example.com",
+                "smtp_port": 587,
+                "username": "user",
+                "password": "pass",
+                "from": "finops@example.com",
+                "to": "cloud-team@example.com",
+                "use_tls": True,
+            },
+        },
+        "scheduler": {"enabled": False, "interval_minutes": 1440},
     }
 
     output_path = Path(output) if output else Path("config.yaml")
@@ -223,6 +269,44 @@ def init(output):
         yaml.dump(sample_config, f, default_flow_style=False, indent=2)
 
     click.echo(f"Sample configuration written to {output_path}")
+
+
+@cli.command()
+@click.option("--channels", help="Comma-separated notifier names to use (e.g. slack,email)")
+@click.option("--provider", type=click.Choice(["aws", "azure", "gcp"]))
+@click.pass_context
+def proactive(ctx, channels, provider):
+    """Run a proactive cycle: analyze -> summarize -> notify"""
+    agent = ctx.obj["agent"]
+    channel_list = [c.strip() for c in channels.split(",")] if channels else None
+    outcome = agent.run_proactive_cycle(provider=provider, channels=channel_list)
+    click.echo(outcome["summary"])
+    click.echo(f"Notifications sent: {outcome['notify']}")
+
+
+@cli.command()
+@click.option("--host", default="0.0.0.0")
+@click.option("--port", default=8000, type=int)
+@click.pass_context
+def serve(ctx, host, port):
+    """Start the FastAPI web server"""
+    from .webapp import create_app
+    from .scheduler import AgentScheduler
+    import uvicorn
+
+    agent = ctx.obj["agent"]
+    # Optionally start scheduler
+    sched_cfg = ctx.obj["config"].get("scheduler", {})
+    if sched_cfg.get("enabled"):
+        scheduler = AgentScheduler(agent)
+        scheduler.start(
+            interval_minutes=int(sched_cfg.get("interval_minutes", 1440)),
+            provider=sched_cfg.get("provider"),
+            channels=sched_cfg.get("channels") or None,
+        )
+
+    app = create_app(agent)  # reuse configured agent
+    uvicorn.run(app, host=host, port=port)
 
 
 def main():

@@ -34,6 +34,9 @@ class CloudOptimizerAgent:
         self.providers: Dict[str, CloudProvider] = {}
         self.strategies: Dict[str, OptimizationStrategy] = {}
         self.integrations: Dict[str, Integration] = {}
+        # Optional components wired at runtime
+        self.llm: Any = None
+        self.notifiers: Dict[str, Any] = {}
 
     def register_provider(self, name: str, provider: CloudProvider) -> None:
         """Register a cloud provider"""
@@ -46,6 +49,14 @@ class CloudOptimizerAgent:
     def register_integration(self, name: str, integration: Integration) -> None:
         """Register an integration"""
         self.integrations[name] = integration
+
+    def register_llm(self, llm: Any) -> None:
+        """Attach an LLM engine implementing .summarize(text, context) -> str"""
+        self.llm = llm
+
+    def register_notifier(self, name: str, notifier: Any) -> None:
+        """Register a notifier implementing .send(message: str, **kwargs)"""
+        self.notifiers[name] = notifier
 
     def analyze_costs(self, provider_name: str, **kwargs) -> Dict[str, Any]:
         """Analyze costs for a specific provider"""
@@ -107,3 +118,70 @@ class CloudOptimizerAgent:
                         print(f"Error optimizing {prov_name}: {e}")
 
         return results
+
+    # --- Proactive agent capabilities ---
+    def summarize_results(self, results: List[OptimizationResult], org_context: Optional[Dict[str, Any]] = None) -> str:
+        """Use LLM (if available) to summarize optimization results for humans"""
+        if not results:
+            return "No optimization opportunities were found."
+
+        # Fallback summary without LLM
+        base_summary = []
+        total_savings = sum(r.savings for r in results)
+        base_summary.append(
+            f"Found {len(results)} opportunities across providers with total potential savings ${total_savings:,.2f}."
+        )
+        for r in results[:5]:
+            base_summary.append(
+                f"- {r.provider.upper()}: save ${r.savings:,.2f} on {r.resource_type}; confidence {r.confidence_score:.0%}."
+            )
+        summary_text = "\n".join(base_summary)
+
+        if self.llm is None:
+            return summary_text
+
+        try:
+            # Prepare simple context payload
+            ctx = {
+                "org": (org_context or {}).get("name", ""),
+                "date": datetime.now().isoformat(),
+                "results": [
+                    {
+                        "provider": r.provider,
+                        "resource_type": r.resource_type,
+                        "savings": r.savings,
+                        "recommendations": r.recommendations[:3],
+                        "confidence": r.confidence_score,
+                    }
+                    for r in results
+                ],
+            }
+            return self.llm.summarize(summary_text, ctx)
+        except Exception as e:
+            # Fallback to base summary on failure
+            print(f"LLM summarization failed: {e}")
+            return summary_text
+
+    def notify(self, message: str, channels: Optional[List[str]] = None, **kwargs) -> Dict[str, bool]:
+        """Send a notification message to one or more registered channels"""
+        results: Dict[str, bool] = {}
+        targets = channels or list(self.notifiers.keys())
+        for name in targets:
+            notifier = self.notifiers.get(name)
+            if notifier is None:
+                results[name] = False
+                continue
+            try:
+                notifier.send(message, **kwargs)
+                results[name] = True
+            except Exception as e:
+                print(f"Notifier '{name}' failed: {e}")
+                results[name] = False
+        return results
+
+    def run_proactive_cycle(self, provider: Optional[str] = None, channels: Optional[List[str]] = None, org_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """End-to-end cycle: collect -> optimize -> summarize -> notify"""
+        results = self.get_recommendations(provider)
+        summary = self.summarize_results(results, org_context)
+        notify_status = self.notify(summary, channels)
+        return {"summary": summary, "notify": notify_status, "count": len(results)}

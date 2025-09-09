@@ -76,6 +76,21 @@ def get_default_config() -> Dict[str, Any]:
             "thresholds": {"min_savings_percent": 10.0, "min_confidence_score": 0.7},
             "schedule": {"analysis_frequency": "daily", "report_frequency": "weekly"},
         },
+        "llm": {"provider": "openai", "model": "gpt-4o-mini", "api_key": ""},
+        "notifications": {
+            "slack": {"enabled": False, "token": "", "channel": ""},
+            "email": {
+                "enabled": False,
+                "smtp_host": "",
+                "smtp_port": 587,
+                "username": "",
+                "password": "",
+                "from": "",
+                "to": "",
+                "use_tls": True,
+            },
+        },
+        "scheduler": {"enabled": False, "interval_minutes": 1440, "provider": None, "channels": []},
         "logging": {
             "level": "INFO",
             "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
