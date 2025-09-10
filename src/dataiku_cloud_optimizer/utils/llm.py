@@ -5,14 +5,11 @@ LLM engine wrapper used by the agent for summarization and reasoning.
 from typing import Any, Callable, Dict, Optional, TYPE_CHECKING  # noqa: I001
 
 try:  # pragma: no cover
-    from openai import OpenAI
+    from openai import OpenAI as _RealOpenAI
 except Exception:  # pragma: no cover - optional dependency during tests
-    OpenAI = None  # type: ignore
+    _RealOpenAI = None  # type: ignore
 
-if TYPE_CHECKING:  # For static type checking only
-    from openai import OpenAI as OpenAIType
-else:  # Runtime fallback
-    OpenAIType = Any
+OpenAIType = Any  # Simplified: treat OpenAI client as Any for typing
 
 
 class LLMEngine:
@@ -22,10 +19,12 @@ class LLMEngine:
         self, api_key: Optional[str] = None, model: str = "gpt-4o-mini"
     ) -> None:
         self.model = model
-        self.enabled = OpenAI is not None and api_key is not None
-        self._client: Optional[OpenAIType] = (
-            OpenAI(api_key=api_key) if self.enabled else None
-        )
+        self.enabled = _RealOpenAI is not None and api_key is not None
+        self._client: Optional[Any]
+        if self.enabled and _RealOpenAI is not None:  # runtime guard
+            self._client = _RealOpenAI(api_key=api_key)
+        else:
+            self._client = None
 
     def summarize(self, text: str, context: Optional[Dict[str, Any]] = None) -> str:
         if not self.enabled or self._client is None:
