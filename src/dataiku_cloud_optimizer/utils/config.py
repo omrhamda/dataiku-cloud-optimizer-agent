@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
-import yaml  # type: ignore
+import yaml
 
 
 def load_config(config_path: Union[str, Path]) -> Dict[str, Any]:

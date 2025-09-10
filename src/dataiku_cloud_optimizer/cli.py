@@ -280,7 +280,7 @@ def init(output):
 
     output_path = Path(output) if output else Path("config.yaml")
 
-    import yaml  # type: ignore
+    import yaml
 
     with open(output_path, "w") as f:
         yaml.dump(sample_config, f, default_flow_style=False, indent=2)
