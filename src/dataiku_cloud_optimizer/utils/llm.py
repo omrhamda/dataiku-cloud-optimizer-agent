@@ -2,7 +2,7 @@
 LLM engine wrapper used by the agent for summarization and reasoning.
 """
 
-from typing import Any, Callable, Dict, Optional, TYPE_CHECKING
+from typing import Any, Callable, Dict, Optional, TYPE_CHECKING  # noqa: I001
 
 try:  # pragma: no cover
     from openai import OpenAI

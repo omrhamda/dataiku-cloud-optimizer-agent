@@ -7,7 +7,7 @@ import smtplib
 from dataclasses import dataclass
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from typing import Optional, Any
+from typing import Any, Optional  # noqa: I001
 
 from slack_sdk import WebClient
 
