@@ -1,6 +1,4 @@
-"""
-Unit tests for configuration utilities
-"""
+"""Unit tests for configuration utilities"""
 
 import json
 import tempfile

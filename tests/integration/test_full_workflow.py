@@ -1,6 +1,4 @@
-"""
-Integration tests for the full optimizer workflow
-"""
+"""Integration tests for the full optimizer workflow."""
 
 import tempfile
 from pathlib import Path
@@ -8,16 +6,10 @@ from pathlib import Path
 import pytest
 
 from dataiku_cloud_optimizer.core import CloudOptimizerAgent
-from dataiku_cloud_optimizer.integrations import (
-    DatabricksIntegration,
-    DataikuIntegration,
-)
+from dataiku_cloud_optimizer.integrations import DatabricksIntegration, DataikuIntegration
 from dataiku_cloud_optimizer.providers import AWSProvider, AzureProvider, GCPProvider
 from dataiku_cloud_optimizer.strategies import CostOptimizationStrategy
-from dataiku_cloud_optimizer.utils.config import (
-    get_default_config,
-    load_config,
-)
+from dataiku_cloud_optimizer.utils.config import get_default_config, load_config
 
 
 class TestFullWorkflow:
@@ -229,9 +221,7 @@ class TestFullWorkflow:
             "min_savings_threshold": 50.0,  # Higher threshold
             "confidence_threshold": 0.8,
         }
-        agent.register_strategy(
-            "cost_optimization", CostOptimizationStrategy(strategy_config)
-        )
+        agent.register_strategy("cost_optimization", CostOptimizationStrategy(strategy_config))
 
         # Set up integrations
         dataiku_config = {

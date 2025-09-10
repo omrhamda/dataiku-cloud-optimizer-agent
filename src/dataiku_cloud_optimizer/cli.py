@@ -304,7 +304,8 @@ def proactive(ctx, channels, provider):
 
 
 @cli.command()
-@click.option("--host", default="0.0.0.0")
+# Bind to localhost by default to avoid exposing service broadly (Bandit B104)
+@click.option("--host", default="127.0.0.1")
 @click.option("--port", default=8000, type=int)
 @click.pass_context
 def serve(ctx, host, port):
