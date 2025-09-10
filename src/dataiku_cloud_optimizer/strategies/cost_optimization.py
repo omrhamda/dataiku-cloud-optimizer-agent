@@ -49,7 +49,9 @@ class CostOptimizationStrategy(OptimizationStrategy):
             "detailed_recommendations": recommendations,
         }
 
-    def _generate_recommendations(self, cost_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _generate_recommendations(
+        self, cost_data: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         """Generate specific optimization recommendations"""
         recommendations = []
         total_cost = cost_data.get("total_cost", 0.0)
@@ -126,7 +128,9 @@ class CostOptimizationStrategy(OptimizationStrategy):
 
         return filtered_recs
 
-    def _get_aws_specific_recommendations(self, cost_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _get_aws_specific_recommendations(
+        self, cost_data: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         """Get AWS-specific optimization recommendations"""
         return [
             {
@@ -138,7 +142,9 @@ class CostOptimizationStrategy(OptimizationStrategy):
             }
         ]
 
-    def _get_azure_specific_recommendations(self, cost_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _get_azure_specific_recommendations(
+        self, cost_data: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         """Get Azure-specific optimization recommendations"""
         return [
             {
@@ -150,7 +156,9 @@ class CostOptimizationStrategy(OptimizationStrategy):
             }
         ]
 
-    def _get_gcp_specific_recommendations(self, cost_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _get_gcp_specific_recommendations(
+        self, cost_data: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         """Get GCP-specific optimization recommendations"""
         return [
             {
