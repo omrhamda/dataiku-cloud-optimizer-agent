@@ -3,14 +3,14 @@ Base optimization strategy interface
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 
 class OptimizationStrategy(ABC):
     """Abstract base class for optimization strategies"""
 
-    def __init__(self, config: Dict[str, Any] = None):
-        self.config = config or {}
+    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
+        self.config: Dict[str, Any] = config or {}
 
     @abstractmethod
     def optimize(self, cost_data: Dict[str, Any]) -> Dict[str, Any]:

@@ -3,7 +3,7 @@ Cost optimization strategy implementation
 """
 
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 from .base import OptimizationStrategy
 
@@ -16,7 +16,7 @@ class CostOptimizationStrategy(OptimizationStrategy):
     unused resources, and reserved instances
     """
 
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
         super().__init__(config)
         self.min_savings_threshold = self.config.get("min_savings_threshold", 10.0)
         self.confidence_threshold = self.config.get("confidence_threshold", 0.7)
@@ -49,7 +49,7 @@ class CostOptimizationStrategy(OptimizationStrategy):
             "detailed_recommendations": recommendations,
         }
 
-    def _generate_recommendations(self, cost_data: Dict[str, Any]) -> list:
+    def _generate_recommendations(self, cost_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Generate specific optimization recommendations"""
         recommendations = []
         total_cost = cost_data.get("total_cost", 0.0)
@@ -126,7 +126,7 @@ class CostOptimizationStrategy(OptimizationStrategy):
 
         return filtered_recs
 
-    def _get_aws_specific_recommendations(self, cost_data: Dict[str, Any]) -> list:
+    def _get_aws_specific_recommendations(self, cost_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Get AWS-specific optimization recommendations"""
         return [
             {
@@ -138,7 +138,7 @@ class CostOptimizationStrategy(OptimizationStrategy):
             }
         ]
 
-    def _get_azure_specific_recommendations(self, cost_data: Dict[str, Any]) -> list:
+    def _get_azure_specific_recommendations(self, cost_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Get Azure-specific optimization recommendations"""
         return [
             {
@@ -150,7 +150,7 @@ class CostOptimizationStrategy(OptimizationStrategy):
             }
         ]
 
-    def _get_gcp_specific_recommendations(self, cost_data: Dict[str, Any]) -> list:
+    def _get_gcp_specific_recommendations(self, cost_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Get GCP-specific optimization recommendations"""
         return [
             {

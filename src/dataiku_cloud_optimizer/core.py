@@ -30,7 +30,7 @@ class CloudOptimizerAgent:
     Main agent class that orchestrates cloud optimization across multiple providers
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.providers: Dict[str, CloudProvider] = {}
         self.strategies: Dict[str, OptimizationStrategy] = {}
         self.integrations: Dict[str, Integration] = {}
@@ -58,7 +58,7 @@ class CloudOptimizerAgent:
         """Register a notifier implementing .send(message: str, **kwargs)"""
         self.notifiers[name] = notifier
 
-    def analyze_costs(self, provider_name: str, **kwargs) -> Dict[str, Any]:
+    def analyze_costs(self, provider_name: str, **kwargs: Any) -> Dict[str, Any]:
         """Analyze costs for a specific provider"""
         if provider_name not in self.providers:
             raise ValueError(f"Provider {provider_name} not registered")
@@ -67,7 +67,7 @@ class CloudOptimizerAgent:
         return provider.get_cost_data(**kwargs)
 
     def optimize(
-        self, provider_name: str, strategy_name: str, **kwargs
+        self, provider_name: str, strategy_name: str, **kwargs: Any
     ) -> OptimizationResult:
         """Run optimization for a specific provider using a strategy"""
         if provider_name not in self.providers:
@@ -167,7 +167,7 @@ class CloudOptimizerAgent:
             return summary_text
 
     def notify(
-        self, message: str, channels: Optional[List[str]] = None, **kwargs
+        self, message: str, channels: Optional[List[str]] = None, **kwargs: Any
     ) -> Dict[str, bool]:
         """Send a notification message to one or more registered channels"""
         results: Dict[str, bool] = {}

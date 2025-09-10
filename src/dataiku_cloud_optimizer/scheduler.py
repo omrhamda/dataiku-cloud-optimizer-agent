@@ -4,7 +4,7 @@ Background scheduler to run proactive optimization cycles periodically.
 
 from typing import List, Optional
 
-from apscheduler.schedulers.background import BackgroundScheduler  # type: ignore
+from apscheduler.schedulers.background import BackgroundScheduler
 
 from .core import CloudOptimizerAgent
 

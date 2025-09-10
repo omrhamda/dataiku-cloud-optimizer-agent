@@ -2,12 +2,17 @@
 LLM engine wrapper used by the agent for summarization and reasoning.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional, TYPE_CHECKING
 
-try:
-    from openai import OpenAI  # type: ignore
+try:  # pragma: no cover
+    from openai import OpenAI
 except Exception:  # pragma: no cover - optional dependency during tests
     OpenAI = None  # type: ignore
+
+if TYPE_CHECKING:  # For static type checking only
+    from openai import OpenAI as OpenAIType
+else:  # Runtime fallback
+    OpenAIType = Any
 
 
 class LLMEngine:
@@ -18,7 +23,9 @@ class LLMEngine:
     ) -> None:
         self.model = model
         self.enabled = OpenAI is not None and api_key is not None
-        self._client = OpenAI(api_key=api_key) if self.enabled else None
+        self._client: Optional[OpenAIType] = (
+            OpenAI(api_key=api_key) if self.enabled else None
+        )
 
     def summarize(self, text: str, context: Optional[Dict[str, Any]] = None) -> str:
         if not self.enabled or self._client is None:
@@ -56,8 +63,8 @@ class CallbackLLMEngine:
         fn(prompt: str, context: Optional[Dict[str, Any]]) -> str
     """
 
-    def __init__(self, fn):
-        self._fn = fn
+    def __init__(self, fn: Callable[[str, Optional[Dict[str, Any]]], str]):
+        self._fn: Callable[[str, Optional[Dict[str, Any]]], str] = fn
 
     def summarize(self, text: str, context: Optional[Dict[str, Any]] = None) -> str:
         try:
