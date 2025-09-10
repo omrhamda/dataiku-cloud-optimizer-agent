@@ -124,9 +124,9 @@ class TestConfigUtils:
         config["providers"]["aws"]["region"] = "us-east-1"
         config["integrations"]["dataiku"]["url"] = "https://test.com"
         config["integrations"]["dataiku"]["api_key"] = "test-key"
-        config["integrations"]["databricks"][
-            "workspace_url"
-        ] = "https://test.databricks.com"
+        config["integrations"]["databricks"]["workspace_url"] = (
+            "https://test.databricks.com"
+        )
         config["integrations"]["databricks"]["token"] = "test-token"
 
         is_valid, errors = validate_config(config)

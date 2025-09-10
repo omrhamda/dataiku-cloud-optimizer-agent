@@ -6,7 +6,10 @@ from pathlib import Path
 import pytest
 
 from dataiku_cloud_optimizer.core import CloudOptimizerAgent
-from dataiku_cloud_optimizer.integrations import DatabricksIntegration, DataikuIntegration
+from dataiku_cloud_optimizer.integrations import (
+    DatabricksIntegration,
+    DataikuIntegration,
+)
 from dataiku_cloud_optimizer.providers import AWSProvider, AzureProvider, GCPProvider
 from dataiku_cloud_optimizer.strategies import CostOptimizationStrategy
 from dataiku_cloud_optimizer.utils.config import get_default_config, load_config
@@ -70,9 +73,9 @@ class TestFullWorkflow:
         config_data["providers"]["aws"]["region"] = "us-west-2"
         config_data["integrations"]["dataiku"]["url"] = "https://test.com"
         config_data["integrations"]["dataiku"]["api_key"] = "test-key"
-        config_data["integrations"]["databricks"][
-            "workspace_url"
-        ] = "https://test.databricks.com"
+        config_data["integrations"]["databricks"]["workspace_url"] = (
+            "https://test.databricks.com"
+        )
         config_data["integrations"]["databricks"]["token"] = "test-token"
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
@@ -221,7 +224,9 @@ class TestFullWorkflow:
             "min_savings_threshold": 50.0,  # Higher threshold
             "confidence_threshold": 0.8,
         }
-        agent.register_strategy("cost_optimization", CostOptimizationStrategy(strategy_config))
+        agent.register_strategy(
+            "cost_optimization", CostOptimizationStrategy(strategy_config)
+        )
 
         # Set up integrations
         dataiku_config = {
