@@ -13,7 +13,9 @@ except Exception:  # pragma: no cover - optional dependency during tests
 class LLMEngine:
     """Thin wrapper around OpenAI client with a summarize() helper."""
 
-    def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4o-mini") -> None:
+    def __init__(
+        self, api_key: Optional[str] = None, model: str = "gpt-4o-mini"
+    ) -> None:
         self.model = model
         self.enabled = OpenAI is not None and api_key is not None
         self._client = OpenAI(api_key=api_key) if self.enabled else None
@@ -22,9 +24,7 @@ class LLMEngine:
         if not self.enabled or self._client is None:
             return text
 
-        system_prompt = (
-            "You are an assistant that writes clear, concise executive summaries of cloud optimization recommendations."
-        )
+        system_prompt = "You are an assistant that writes clear, concise executive summaries of cloud optimization recommendations."
         user_content = (
             "Summarize the following findings for a business audience. Include estimated savings and clear next steps.\n\n"
             + text

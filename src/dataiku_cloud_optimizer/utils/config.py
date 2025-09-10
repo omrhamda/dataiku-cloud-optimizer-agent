@@ -4,7 +4,7 @@ Configuration management utilities
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Union
+from typing import Any, Dict, List, Tuple, Union
 
 import yaml
 
@@ -90,7 +90,12 @@ def get_default_config() -> Dict[str, Any]:
                 "use_tls": True,
             },
         },
-        "scheduler": {"enabled": False, "interval_minutes": 1440, "provider": None, "channels": []},
+        "scheduler": {
+            "enabled": False,
+            "interval_minutes": 1440,
+            "provider": None,
+            "channels": [],
+        },
         "logging": {
             "level": "INFO",
             "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -98,7 +103,7 @@ def get_default_config() -> Dict[str, Any]:
     }
 
 
-def validate_config(config: Dict[str, Any]) -> tuple[bool, list[str]]:
+def validate_config(config: Dict[str, Any]) -> Tuple[bool, List[str]]:
     """
     Validate configuration structure and required fields
 

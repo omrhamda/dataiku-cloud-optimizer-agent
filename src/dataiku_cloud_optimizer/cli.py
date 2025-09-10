@@ -7,14 +7,17 @@ import os
 from pathlib import Path
 
 import click
+import uvicorn
 
 from .core import CloudOptimizerAgent
 from .integrations import DatabricksIntegration, DataikuIntegration
 from .providers import AWSProvider, AzureProvider, GCPProvider
+from .scheduler import AgentScheduler
 from .strategies import CostOptimizationStrategy
 from .utils.config import load_config
 from .utils.llm import LLMEngine
-from .utils.notify import SlackNotifier, EmailNotifier
+from .utils.notify import EmailNotifier, SlackNotifier
+from .webapp import create_app
 
 
 @click.group()
@@ -50,8 +53,12 @@ def cli(ctx, config):
 
     # Register integrations (pass config)
     integrations_cfg = ctx.obj["config"].get("integrations", {})
-    agent.register_integration("dataiku", DataikuIntegration(integrations_cfg.get("dataiku")))
-    agent.register_integration("databricks", DatabricksIntegration(integrations_cfg.get("databricks")))
+    agent.register_integration(
+        "dataiku", DataikuIntegration(integrations_cfg.get("dataiku"))
+    )
+    agent.register_integration(
+        "databricks", DatabricksIntegration(integrations_cfg.get("databricks"))
+    )
 
     # Wire optional LLM and notifiers
     llm_cfg = ctx.obj["config"].get("llm", {})
@@ -64,7 +71,9 @@ def cli(ctx, config):
     notify_cfg = ctx.obj["config"].get("notifications", {})
     slack_cfg = notify_cfg.get("slack", {})
     if slack_cfg.get("enabled"):
-        slack = SlackNotifier(token=slack_cfg.get("token"), channel=slack_cfg.get("channel"))
+        slack = SlackNotifier(
+            token=slack_cfg.get("token"), channel=slack_cfg.get("channel")
+        )
         agent.register_notifier("slack", slack)
     email_cfg = notify_cfg.get("email", {})
     if email_cfg.get("enabled"):
@@ -244,9 +253,17 @@ def init(output):
             "strategies": ["cost_optimization"],
             "thresholds": {"min_savings_percent": 10.0, "min_confidence_score": 0.7},
         },
-        "llm": {"provider": "openai", "model": "gpt-4o-mini", "api_key": "${OPENAI_API_KEY}"},
+        "llm": {
+            "provider": "openai",
+            "model": "gpt-4o-mini",
+            "api_key": "${OPENAI_API_KEY}",
+        },
         "notifications": {
-            "slack": {"enabled": False, "token": "${SLACK_BOT_TOKEN}", "channel": "#finops"},
+            "slack": {
+                "enabled": False,
+                "token": "${SLACK_BOT_TOKEN}",
+                "channel": "#finops",
+            },
             "email": {
                 "enabled": False,
                 "smtp_host": "smtp.example.com",
@@ -272,7 +289,9 @@ def init(output):
 
 
 @cli.command()
-@click.option("--channels", help="Comma-separated notifier names to use (e.g. slack,email)")
+@click.option(
+    "--channels", help="Comma-separated notifier names to use (e.g. slack,email)"
+)
 @click.option("--provider", type=click.Choice(["aws", "azure", "gcp"]))
 @click.pass_context
 def proactive(ctx, channels, provider):
@@ -290,10 +309,6 @@ def proactive(ctx, channels, provider):
 @click.pass_context
 def serve(ctx, host, port):
     """Start the FastAPI web server"""
-    from .webapp import create_app
-    from .scheduler import AgentScheduler
-    import uvicorn
-
     agent = ctx.obj["agent"]
     # Optionally start scheduler
     sched_cfg = ctx.obj["config"].get("scheduler", {})

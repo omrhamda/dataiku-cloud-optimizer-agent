@@ -78,9 +78,9 @@ class TestFullWorkflow:
         config_data["providers"]["aws"]["region"] = "us-west-2"
         config_data["integrations"]["dataiku"]["url"] = "https://test.com"
         config_data["integrations"]["dataiku"]["api_key"] = "test-key"
-        config_data["integrations"]["databricks"]["workspace_url"] = (
-            "https://test.databricks.com"
-        )
+        config_data["integrations"]["databricks"][
+            "workspace_url"
+        ] = "https://test.databricks.com"
         config_data["integrations"]["databricks"]["token"] = "test-token"
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:

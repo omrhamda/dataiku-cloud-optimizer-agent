@@ -2,7 +2,6 @@
 Unit tests for Dataiku integration
 """
 
-
 from dataiku_cloud_optimizer.integrations.dataiku import DataikuIntegration
 
 

@@ -4,7 +4,7 @@ Base cloud provider interface
 
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 
 class CloudProvider(ABC):
@@ -45,7 +45,7 @@ class CloudProvider(ABC):
         """Get list of unused or underutilized resources"""
         pass
 
-    def get_default_date_range(self) -> tuple[str, str]:
+    def get_default_date_range(self) -> Tuple[str, str]:
         """Get default date range for cost analysis (last 30 days)"""
         end_date = datetime.now()
         start_date = end_date - timedelta(days=30)

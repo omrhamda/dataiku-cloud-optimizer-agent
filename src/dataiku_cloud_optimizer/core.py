@@ -120,7 +120,11 @@ class CloudOptimizerAgent:
         return results
 
     # --- Proactive agent capabilities ---
-    def summarize_results(self, results: List[OptimizationResult], org_context: Optional[Dict[str, Any]] = None) -> str:
+    def summarize_results(
+        self,
+        results: List[OptimizationResult],
+        org_context: Optional[Dict[str, Any]] = None,
+    ) -> str:
         """Use LLM (if available) to summarize optimization results for humans"""
         if not results:
             return "No optimization opportunities were found."
@@ -162,7 +166,9 @@ class CloudOptimizerAgent:
             print(f"LLM summarization failed: {e}")
             return summary_text
 
-    def notify(self, message: str, channels: Optional[List[str]] = None, **kwargs) -> Dict[str, bool]:
+    def notify(
+        self, message: str, channels: Optional[List[str]] = None, **kwargs
+    ) -> Dict[str, bool]:
         """Send a notification message to one or more registered channels"""
         results: Dict[str, bool] = {}
         targets = channels or list(self.notifiers.keys())
@@ -179,7 +185,12 @@ class CloudOptimizerAgent:
                 results[name] = False
         return results
 
-    def run_proactive_cycle(self, provider: Optional[str] = None, channels: Optional[List[str]] = None, org_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def run_proactive_cycle(
+        self,
+        provider: Optional[str] = None,
+        channels: Optional[List[str]] = None,
+        org_context: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
         """End-to-end cycle: collect -> optimize -> summarize -> notify"""
         results = self.get_recommendations(provider)
         summary = self.summarize_results(results, org_context)

@@ -2,7 +2,6 @@
 Unit tests for cost optimization strategy
 """
 
-
 from dataiku_cloud_optimizer.strategies.cost_optimization import (
     CostOptimizationStrategy,
 )
@@ -116,9 +115,7 @@ class TestCostOptimizationStrategy:
 
     def test_recommendations_filtering(self):
         """Test filtering of recommendations by minimum savings"""
-        config = {
-            "min_savings_threshold": 100.0  # High threshold
-        }
+        config = {"min_savings_threshold": 100.0}  # High threshold
         strategy = CostOptimizationStrategy(config)
 
         low_cost_data = {

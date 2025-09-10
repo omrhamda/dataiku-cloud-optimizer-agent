@@ -15,11 +15,18 @@ class AgentScheduler:
         self._sched = BackgroundScheduler()
         self._job = None
 
-    def start(self, interval_minutes: int = 1440, provider: Optional[str] = None, channels: Optional[List[str]] = None) -> None:
+    def start(
+        self,
+        interval_minutes: int = 1440,
+        provider: Optional[str] = None,
+        channels: Optional[List[str]] = None,
+    ) -> None:
         if self._job:
             self._job.remove()
         self._job = self._sched.add_job(
-            lambda: self.agent.run_proactive_cycle(provider=provider, channels=channels),
+            lambda: self.agent.run_proactive_cycle(
+                provider=provider, channels=channels
+            ),
             "interval",
             minutes=interval_minutes,
             replace_existing=True,

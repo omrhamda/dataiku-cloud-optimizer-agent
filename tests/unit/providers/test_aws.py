@@ -2,7 +2,6 @@
 Unit tests for AWS provider
 """
 
-
 from dataiku_cloud_optimizer.providers.aws import AWSProvider
 
 

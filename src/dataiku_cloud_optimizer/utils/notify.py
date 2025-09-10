@@ -45,8 +45,12 @@ class EmailNotifier(Notifier):
     to_addr: str = ""
     use_tls: bool = True
 
-    def send(self, message: str, subject: str = "Cloud Optimization Update", **kwargs) -> None:
-        if not all([self.smtp_host, self.username, self.password, self.from_addr, self.to_addr]):
+    def send(
+        self, message: str, subject: str = "Cloud Optimization Update", **kwargs
+    ) -> None:
+        if not all(
+            [self.smtp_host, self.username, self.password, self.from_addr, self.to_addr]
+        ):
             raise RuntimeError("Email notifier is not fully configured")
 
         msg = MIMEMultipart("alternative")

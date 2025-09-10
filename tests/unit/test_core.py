@@ -2,7 +2,6 @@
 Unit tests for the core CloudOptimizerAgent
 """
 
-
 import pytest
 
 from dataiku_cloud_optimizer.core import CloudOptimizerAgent, OptimizationResult
