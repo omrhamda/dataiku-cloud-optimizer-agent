@@ -1,0 +1,74 @@
+{
+  "id": "cloud-optimizer",
+  "version": "0.1.1",
+  "meta": {
+    "label": "Cloud Cost Optimizer",
+    "description": "Runs multi-cloud cost optimization strategies and outputs recommendations.",
+    "author": "Dataiku Cloud Optimizer Team",
+  "license": "Apache-2.0",
+  "category": "Cloud Optimization"
+  },
+  "params": [
+    {
+      "name": "default_config_yaml",
+      "type": "TEXTAREA",
+      "label": "Default Agent Config (YAML)",
+      "mandatory": false,
+      "description": "Paste YAML (providers, strategies, thresholds). Stored as multi-line text.",
+      "defaultValue": "# example:\n# providers:\n#   aws: {}\n# strategies:\n#   cost:\n#     min_savings_threshold: 10\n"
+    },
+    {
+      "name": "llm_connection",
+      "type": "LLM",
+      "label": "LLM Connection (LLM Mesh)",
+      "mandatory": false,
+      "llmUsagePurpose": "GENERIC_COMPLETION",
+      "description": "Select a DSS LLM Mesh connection. Overrides explicit API key if provided."
+    },
+    {
+      "name": "openai_api_key",
+      "type": "PASSWORD",
+      "label": "OpenAI API Key",
+      "mandatory": false,
+      "description": "Optional key for LLM summarization. Leave blank to disable."
+    },
+    {
+      "name": "llm_model",
+      "type": "STRING",
+      "label": "LLM Model Name",
+      "defaultValue": "gpt-4o-mini",
+      "mandatory": false,
+      "description": "Model identifier for OpenAI-compatible endpoint."
+    },
+    {
+      "name": "llm_max_tokens",
+      "type": "INT",
+      "label": "LLM Max Tokens",
+      "defaultValue": 512,
+      "mandatory": false
+    },
+    {
+      "name": "slack_webhook_url",
+      "type": "PASSWORD",
+      "label": "Slack Webhook URL",
+      "mandatory": false,
+      "description": "Incoming webhook for notifications (optional)."
+    },
+    {
+      "name": "email_recipients",
+      "type": "STRING",
+      "label": "Email Recipients (comma-separated)",
+      "mandatory": false,
+      "description": "If Email notifier implemented, list recipients."
+    },
+    {
+      "name": "notifications_enabled",
+      "type": "BOOLEAN",
+      "label": "Enable Notifications",
+      "defaultValue": true,
+      "mandatory": false
+    }
+  ],
+  "pythonPath": ["python-lib"],
+  "supportPy2": false
+}

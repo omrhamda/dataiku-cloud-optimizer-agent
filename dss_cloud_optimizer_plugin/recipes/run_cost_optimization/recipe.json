@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "label": "Run Cloud Cost Optimization",
+    "description": "Execute optimization strategies and produce a recommendations dataset"
+  },
+  "kind": "PYTHON",
+  "name": "run_cost_optimization",
+  "shortDescription": "Run cost optimization across providers",
+  "help": "This recipe runs configured cloud cost optimization strategies and outputs a dataset of recommendations.",
+  "inputRoles": [],
+  "outputRoles": [
+    {
+      "name": "main",
+      "label": "Recommendations output",
+  "description": "Output dataset (role 'main') to write cost optimization recommendations",
+      "arity": "UNARY",
+      "required": true,
+      "acceptsDataset": true
+    }
+  ],
+  "params": [
+    {
+      "name": "strategies",
+      "type": "STRING",
+      "label": "Strategies (comma-separated)",
+      "defaultValue": "cost",
+      "mandatory": false
+    },
+    {
+      "name": "emit_placeholder_on_empty",
+      "type": "BOOLEAN",
+      "label": "Create dataset with placeholder row when empty",
+      "defaultValue": true,
+      "mandatory": false
+    }
+  ]
+}

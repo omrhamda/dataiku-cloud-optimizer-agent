@@ -1,0 +1,16 @@
+{
+  "meta": {
+    "label": "Run Proactive Cycle",
+    "description": "Runs a proactive optimization cycle (all configured strategies/providers)."
+  },
+  "name": "run_proactive_cycle",
+  "shortDescription": "Summarize and notify on optimization cycle",
+  "params": [
+    {
+      "name": "strategies",
+      "type": "STRING",
+      "label": "Strategies (comma-separated, empty = all)",
+      "mandatory": false
+    }
+  ]
+}

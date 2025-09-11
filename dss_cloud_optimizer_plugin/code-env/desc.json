@@ -1,0 +1,10 @@
+{
+  "envMode": "IMPORT",
+  "pythonInterpreter": "PYTHON36",
+  "installCorePackages": true,
+  "requestedPackages": [
+    {"package": "PyYAML"},
+    {"package": "openai"}
+  ],
+  "installJupyterSupport": false
+}
