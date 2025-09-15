@@ -6,8 +6,17 @@
   "kind": "PYTHON",
   "name": "run_cost_optimization",
   "shortDescription": "Run cost optimization across providers",
-  "help": "This recipe runs configured cloud cost optimization strategies and outputs a dataset of recommendations.",
-  "inputRoles": [],
+  "help": "This recipe ingests optional input datasets with existing recommendations (cloud exports or Databricks), runs configured strategies (unless disabled), and outputs a unified recommendations dataset.",
+  "inputRoles": [
+    {
+      "name": "recommendations_in",
+      "label": "Existing recommendations (optional)",
+      "description": "Datasets with real recommendations from cloud exports or Databricks SQL",
+      "arity": "NARY",
+      "required": false,
+      "acceptsDataset": true
+    }
+  ],
   "outputRoles": [
     {
       "name": "main",
@@ -27,10 +36,25 @@
       "mandatory": false
     },
     {
+      "name": "include_llm_summary_row",
+      "type": "BOOLEAN",
+      "label": "Append LLM summary as a row",
+      "defaultValue": true,
+      "mandatory": false,
+      "description": "If an LLM is configured, append a summary message into the output dataset."
+    },
+    {
       "name": "emit_placeholder_on_empty",
       "type": "BOOLEAN",
       "label": "Create dataset with placeholder row when empty",
       "defaultValue": true,
+      "mandatory": false
+    },
+    {
+      "name": "use_inputs_only",
+      "type": "BOOLEAN",
+      "label": "Use only input datasets (skip built-in heuristics)",
+      "defaultValue": false,
       "mandatory": false
     }
   ]

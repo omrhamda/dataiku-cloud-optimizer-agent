@@ -18,6 +18,7 @@ from dataiku.customrecipe import (  # type: ignore
     get_recipe_config,
     get_plugin_config,
     get_output_names_for_role,
+    get_input_names_for_role,
 )
 
 # Import agent pieces (assuming the package copied into python-lib)
@@ -51,7 +52,21 @@ def _build_agent(pconf: Dict[str, Any]) -> CloudOptimizerAgent:
 
     agent = CloudOptimizerAgent()
     # Providers with optional per-provider configs
-    agent.register_provider("aws", AWSProvider(providers_cfg.get("aws")))
+    # Merge plugin-level AWS toggles/overrides
+    aws_enabled = pconf.get("aws_enabled", True)
+    aws_cfg = dict(providers_cfg.get("aws") or {})
+    if pconf.get("aws_region"):
+        aws_cfg["region"] = pconf.get("aws_region")
+    if pconf.get("aws_profile"):
+        aws_cfg["profile"] = pconf.get("aws_profile")
+    # Optional explicit credentials
+    if pconf.get("aws_access_key_id") and pconf.get("aws_secret_access_key"):
+        aws_cfg["aws_access_key_id"] = pconf.get("aws_access_key_id")
+        aws_cfg["aws_secret_access_key"] = pconf.get("aws_secret_access_key")
+        if pconf.get("aws_session_token"):
+            aws_cfg["aws_session_token"] = pconf.get("aws_session_token")
+    if aws_enabled:
+        agent.register_provider("aws", AWSProvider(aws_cfg))
     agent.register_provider("azure", AzureProvider(providers_cfg.get("azure")))
     agent.register_provider("gcp", GCPProvider(providers_cfg.get("gcp")))
     # Strategy config
@@ -88,6 +103,67 @@ def _run_cost_optimization(agent: CloudOptimizerAgent, strategies: List[str]) ->
                     if isinstance(r, dict):
                         results.append(r)
     return results
+
+
+def _append_aws_rightsizing(agent: CloudOptimizerAgent, results: List[Dict[str, Any]]) -> None:
+    """Augment results with AWS Compute Optimizer rightsizing recommendations when available."""
+    try:
+        aws = agent.providers.get("aws")  # type: ignore[attr-defined]
+    except Exception:
+        aws = None
+    if not aws:
+        return
+    try:
+        rightsizing = aws.get_rightsizing_opportunities()  # type: ignore[attr-defined]
+        for rr in rightsizing or []:
+            # Only include recommendations matching the configured region when present
+            if rr.get("region") and getattr(aws, "region", None) and rr.get("region") != getattr(aws, "region", None):
+                continue
+            rec: Dict[str, Any] = {
+                "provider": "aws",
+                "region": getattr(aws, "region", None),
+                "resource_type": "EC2",
+                "resource_id": rr.get("instance_id"),
+                "recommendation": "Rightsize {cur} -> {rec}".format(
+                    cur=rr.get("current_type"), rec=rr.get("recommended_type")
+                ),
+                "savings": rr.get("monthly_savings"),
+                "confidence_score": rr.get("confidence_score"),
+                "details": rr,
+            }
+            results.append(rec)
+    except Exception:
+        # Keep silent in DSS UI; upstream stubs already handle most failures
+        return
+
+
+def _read_input_recommendations() -> List[Dict[str, Any]]:
+    """Read optional input datasets from role 'recommendations_in' and normalize fields.
+    Expected flexible columns: provider, resource_id, current_cost, projected_cost,
+    savings or savings_percent, confidence or confidence_score, recommendation(s).
+    """
+    inputs = []
+    names = []
+    try:
+        names = get_input_names_for_role("recommendations_in") or []
+    except Exception:
+        names = []
+    for name in names:
+        try:
+            ds = Dataset(name)
+            for row in ds.iter_rows():
+                r: Dict[str, Any] = dict(row)
+                # If dataset supplies array/object, stringify for consistency
+                for k, v in list(r.items()):
+                    if isinstance(v, (dict, list)):
+                        r[k] = json.dumps(v)
+                # Normalize key variants
+                if "confidence" in r and "confidence_score" not in r:
+                    r["confidence_score"] = r["confidence"]
+                inputs.append(r)
+        except Exception:
+            continue
+    return inputs
 
 
 def _write_output(dataset_name: str, rows: List[Dict[str, Any]]) -> None:
@@ -193,7 +269,16 @@ def main() -> None:
     output_ds = output_names[0]
 
     agent = _build_agent(pconf)
-    recs = _run_cost_optimization(agent, strategies)
+    recs = []
+    # Optional: read external recommendations first
+    external_recs = _read_input_recommendations()
+    use_inputs_only = bool(rconf.get("use_inputs_only", False))
+    if external_recs:
+        recs.extend(external_recs)
+    if not use_inputs_only:
+        recs.extend(_run_cost_optimization(agent, strategies))
+        # Also pull AWS rightsizing from Compute Optimizer if available
+        _append_aws_rightsizing(agent, recs)
 
     # Serialize nested objects to JSON strings for consistency
     serializable_rows: List[Dict[str, Any]] = []
@@ -252,6 +337,44 @@ def main() -> None:
     for r in serializable_rows:
         r["total_savings"] = total_savings
 
+    # Optionally append LLM summary row
+    include_summary = bool(rconf.get("include_llm_summary_row", True))
+    summary_text = None
+    if include_summary and getattr(agent, "llm", None):  # type: ignore[attr-defined]
+        try:
+            top3 = serializable_rows[:3]
+            context = {
+                "count": len(serializable_rows),
+                "total_savings": total_savings,
+                "top_recommendations": [
+                    {
+                        "provider": r.get("provider"),
+                        "resource_id": r.get("resource_id"),
+                        "savings": r.get("savings") or r.get("savings_percent") or r.get("current_cost")
+                    }
+                    for r in top3
+                ],
+            }
+            base = (
+                f"Generated {len(serializable_rows)} recommendations. "
+                f"Estimated total monthly savings: ${total_savings:,.2f}."
+            )
+            summary_text = agent.llm.summarize(base, context)  # type: ignore[attr-defined]
+        except Exception:
+            summary_text = None
+
+    if summary_text:
+        # Add as a synthetic row with minimal fields
+        serializable_rows.append({
+            "provider": "summary",
+            "resource_id": "summary",
+            "recommendation": summary_text,
+            "run_id": str(run_id),
+            "run_timestamp": run_ts,
+            "strategy": strategy_label,
+            "total_savings": total_savings,
+        })
+
     # Emit output (optionally with placeholder if empty)
     emit_placeholder = bool(rconf.get("emit_placeholder_on_empty", True))
     if serializable_rows or emit_placeholder:
@@ -270,9 +393,11 @@ def main() -> None:
     if getattr(agent, "llm", None) or agent.notifiers:  # type: ignore[attr-defined]
         # Construct simple results object shape for summarization
         try:
-            summary_base = f"Produced {len(serializable_rows)} recommendations across strategies {','.join(strategies)}"
+            # Exclude summary row itself from count for notifications
+            rec_count = len([r for r in serializable_rows if r.get("provider") != "summary"])
+            summary_base = f"Produced {rec_count} recommendations across strategies {','.join(strategies)}"
             if getattr(agent, "llm", None):
-                context = {"count": len(serializable_rows), "strategies": strategies}
+                context = {"count": rec_count, "strategies": strategies, "total_savings": total_savings}
                 final_summary = agent.llm.summarize(summary_base, context)  # type: ignore[attr-defined]
             else:
                 final_summary = summary_base

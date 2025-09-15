@@ -4,7 +4,8 @@
   "installCorePackages": true,
   "requestedPackages": [
     {"package": "PyYAML"},
-    {"package": "openai"}
+    {"package": "openai"},
+    {"package": "boto3>=1.28.0"}
   ],
   "installJupyterSupport": false
 }

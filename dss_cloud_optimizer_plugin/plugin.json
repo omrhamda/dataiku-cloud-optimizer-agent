@@ -18,6 +18,51 @@
       "defaultValue": "# example:\n# providers:\n#   aws: {}\n# strategies:\n#   cost:\n#     min_savings_threshold: 10\n"
     },
     {
+      "name": "aws_access_key_id",
+      "type": "PASSWORD",
+      "label": "AWS Access Key ID",
+      "mandatory": false,
+      "description": "Optional: set explicit AWS access key for the recipe run."
+    },
+    {
+      "name": "aws_secret_access_key",
+      "type": "PASSWORD",
+      "label": "AWS Secret Access Key",
+      "mandatory": false,
+      "description": "Optional: secret key associated with the above access key."
+    },
+    {
+      "name": "aws_session_token",
+      "type": "PASSWORD",
+      "label": "AWS Session Token (STS)",
+      "mandatory": false,
+      "description": "Optional: session token for temporary credentials."
+    },
+    {
+      "name": "aws_enabled",
+      "type": "BOOLEAN",
+      "label": "Enable AWS Provider",
+      "defaultValue": true,
+      "mandatory": false,
+      "description": "Toggle AWS data collection (Cost Explorer, EC2 inventory)."
+    },
+    {
+      "name": "aws_region",
+      "type": "STRING",
+      "label": "AWS Region",
+      "mandatory": false,
+      "defaultValue": "us-east-1",
+      "description": "Primary region for EC2 inventory; Cost Explorer stays us-east-1."
+    },
+    {
+      "name": "aws_profile",
+      "type": "STRING",
+      "label": "AWS Profile (optional)",
+      "mandatory": false,
+      "defaultValue": "",
+      "description": "Named profile from ~/.aws/credentials; leave blank for IAM role/env vars."
+    },
+    {
       "name": "llm_connection",
       "type": "LLM",
       "label": "LLM Connection (LLM Mesh)",
